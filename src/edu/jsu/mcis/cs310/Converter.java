@@ -2,6 +2,13 @@ package edu.jsu.mcis.cs310;
 
 import com.github.cliftonlabs.json_simple.*;
 import com.opencsv.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 public class Converter {
     
@@ -75,11 +82,44 @@ public class Converter {
     public static String csvToJson(String csvString) {
         
         String result = "{}"; // default return value; replace later!
+       
         
         try {
         
-            // INSERT YOUR CODE HERE
+        CSVReader reader = new CSVReader(new StringReader(csvString));
+        List<String[]> full = reader.readAll();
+        Iterator<String[]> iterator = full.iterator();
+        
+        JsonObject jsonObject = new JsonObject();
+        JsonArray Column = new JsonArray();
+        JsonArray Row = new JsonArray();
+        JsonArray Data = new JsonArray();
+        JsonArray holder;
+        String[] Info = iterator.next();
+        
+        for(int i=0; i < Info.length; i++)
+        {
+            Column.add(Info[i]);
+        }
+        while(iterator.hasNext())
+        {
+            holder = new JsonArray();
+            Info = iterator.next();
+            Row.add(Info[0]);
             
+            for(int i=1; i < Info.length; i++)
+            {
+                //int stringHolder = Integer.parseInt(Info[i]);
+                holder.add(Info[i]);
+            }
+            Data.add(holder);
+        }
+        jsonObject.put("ProdNums", Row);
+        jsonObject.put("colHeadings", Column);
+        jsonObject.put("Data", Data);
+        
+        result = jsonObject.toString();
+    
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -94,11 +134,64 @@ public class Converter {
         
         String result = ""; // default return value; replace later!
         
-        try {
+        String csvFile = "C:\\Users\\Owner\\OneDrive\\Desktop\\Individual 1 Netbeans\\build\\classes\\resources\\input.csv";
+        String line;
+        List<String[]> data = new ArrayList<>();
+        String[] headers = null;
+        BufferedReader br = null;
+        
+        try 
+        {
+            br = new BufferedReader(new FileReader(csvFile));
+
+            if ((line = br.readLine()) != null) 
+            {
+                headers = line.split(",");
+            }
+
+            while ((line = br.readLine()) != null) 
+            {
+                String[] values = line.split(",");
+                if (headers != null && values.length == headers.length) 
+                {
+                    data.add(values);
+                }
+            }
+
+            for (String[] row : data) 
+            {
+                for (int i = 0; i < headers.length; i++) 
+                {
+                    String header = headers[i];
+                    String value = row[i];
+                    System.out.println(header + ": " + value);
+                }
+                System.out.println();
+            }
             
-            // INSERT YOUR CODE HERE
+            Iterator<String[]> iterator = data.iterator();
             
+            JsonArray records = new JsonArray();
+            
+            if (iterator.hasNext()) 
+            {
+                String[] headings = iterator.next();
+                while (iterator.hasNext()) 
+                {
+                    String[] csvRecord = iterator.next();
+                    JsonObject jsonRecord = new JsonObject();
+                    for (int i = 0; i < headings.length; ++i) 
+                    {
+                        jsonRecord.put(headings[i].toLowerCase(), csvRecord[i]);
+                    }
+                    records.add(jsonRecord);
+                }
+            }
+            Jsoner.serialize(records);
+            //result = records.toString();
         }
+        
+        
         catch (Exception e) {
             e.printStackTrace();
         }
@@ -108,3 +201,4 @@ public class Converter {
     }
     
 }
+
